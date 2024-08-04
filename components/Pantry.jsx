@@ -9,8 +9,6 @@ import { collection, addDoc, deleteDoc, setDoc, where } from "firebase/firestore
 import { useEffect, useState } from "react";
 import { initializeApp } from 'firebase/app';
 
-
-
 const style = {
   position: 'absolute',
   top: '50%',
@@ -46,7 +44,7 @@ export default function Home() {
   const [itemName, setItemName] = useState('')
   const [Pantry,  setPantry] = useState([])
   const [searchQuery, setSearchQuery] = useState("");
-
+  
 
 
   
@@ -117,6 +115,30 @@ const editItem = async (itemName, newQuantity, newName) => {
   const [openEditModal, setOpenEditModal] = useState(false);
 const [editedItem, setEditedItem] = useState({ name: '', quantity: 0 });
 
+
+//DifferentPantryForEachUser
+const getPantry = () => {
+  const [pantryItems, setPantryItems] = useState([]);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [editedItem, setEditedItem] = useState(null);
+  const userId = auth.currentUser.uid; // Get the current user's ID from OAuth provider
+
+  useEffect(() => {
+    const fetchPantryItems = async () => {
+      const pantryRef = doc(db, 'Pantry', userId);
+      const pantrySnapshot = await getDoc(pantryRef);
+      setPantryItems(pantrySnapshot.data()?.items || []);
+    };
+
+    fetchPantryItems();
+  }, [userId]);
+
+  const handleAddItem = async (itemName, quantity) => {
+    const pantryRef = doc(db, 'Pantry', userId);
+    await setDoc(pantryRef, { items: [...pantryItems, { name: itemName, quantity: quantity }] }, { merge: true });
+    setPantryItems([...pantryItems, { name: itemName, quantity: quantity }]);
+  };
+}
 
   return (
 
